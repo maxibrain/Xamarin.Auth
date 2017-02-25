@@ -17,8 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
+using Newtonsoft.Json;
 
 namespace Xamarin.Auth
 {
@@ -171,30 +170,25 @@ namespace Xamarin.Auth
 			return acct;
 		}
 
+	    //private static readonly byte[] Key = Encoding.UTF8.GetBytes("auth_account_key");
+
 		string SerializeCookies ()
 		{
-			var f = new BinaryFormatter ();
-			using (var s = new MemoryStream ()) {
-				f.Serialize (s, Cookies);
-				return Convert.ToBase64String (s.GetBuffer (), 0, (int)s.Length);
-			}
+			return JsonConvert.SerializeObject(Cookies);
 		}
 
 		static CookieContainer DeserializeCookies (string cookiesString)
 		{
-			var f = new BinaryFormatter ();
-			using (var s = new MemoryStream (Convert.FromBase64String (cookiesString))) {
-				return (CookieContainer)f.Deserialize (s);
-			}
-		}
+            return JsonConvert.DeserializeObject<CookieContainer>(cookiesString);
+        }
 
-		/// <summary>
-		/// Returns a <see cref="System.String"/> that represents the current <see cref="Xamarin.Auth.Account"/>.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="System.String"/> that represents the current <see cref="Xamarin.Auth.Account"/>.
-		/// </returns>
-		public override string ToString ()
+        /// <summary>
+        /// Returns a <see cref="System.String"/> that represents the current <see cref="Xamarin.Auth.Account"/>.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String"/> that represents the current <see cref="Xamarin.Auth.Account"/>.
+        /// </returns>
+        public override string ToString ()
 		{
 			return Serialize ();
 		}

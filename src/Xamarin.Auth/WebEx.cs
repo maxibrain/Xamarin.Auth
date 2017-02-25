@@ -21,11 +21,10 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using System.Globalization;
-using System.Json;
 
 namespace Xamarin.Utilities
 {
-	internal static class WebEx
+    public static class WebEx
 	{
 		public static string GetCookie (this CookieContainer containers, Uri domain, string name)
 		{
@@ -85,24 +84,6 @@ namespace Xamarin.Utilities
 				var k = Uri.UnescapeDataString (kv[0]);
 				var v = kv.Length > 1 ? Uri.UnescapeDataString (kv[1]) : "";
 				inputs[k] = v;
-			}
-
-			return inputs;
-		}
-
-		public static Dictionary<string, string> JsonDecode (string encodedString)
-		{
-			var inputs = new Dictionary<string, string> ();
-			var json = JsonValue.Parse (encodedString) as JsonObject;
-
-			foreach (var kv in json) {
-				var v = kv.Value as JsonValue;
-				if (v != null) {
-					if (v.JsonType != JsonType.String)
-						inputs[kv.Key] = v.ToString();
-					else
-						inputs[kv.Key] = (string)v;
-				}
 			}
 
 			return inputs;

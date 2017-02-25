@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using Xamarin.Utilities;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Xamarin.Auth
 {
@@ -331,23 +332,22 @@ namespace Xamarin.Auth
 		/// </summary>
 		/// <param name="queryValues">The parameters to make the request with.</param>
 		/// <returns>The data provided in the response to the access token request.</returns>
-		protected Task<IDictionary<string,string>> RequestAccessTokenAsync (IDictionary<string, string> queryValues)
+		protected async Task<IDictionary<string,string>> RequestAccessTokenAsync (IDictionary<string, string> queryValues)
 		{
 			var query = queryValues.FormEncode ();
 
 			var req = WebRequest.Create (accessTokenUrl);
 			req.Method = "POST";
 			var body = Encoding.UTF8.GetBytes (query);
-			req.ContentLength = body.Length;
 			req.ContentType = "application/x-www-form-urlencoded";
-			using (var s = req.GetRequestStream ()) {
+			using (var s = await req.GetRequestStreamAsync()) {
 				s.Write (body, 0, body.Length);
 			}
-			return req.GetResponseAsync ().ContinueWith (task => {
+			return await req.GetResponseAsync ().ContinueWith (task => {
 				var text = task.Result.GetResponseText ();
 
 				// Parse the response
-				var data = text.Contains ("{") ? WebEx.JsonDecode (text) : WebEx.FormDecode (text);
+				var data = text.Contains ("{") ? JsonConvert.DeserializeObject<Dictionary<string, string>>(text) : WebEx.FormDecode (text);
 
 				if (data.ContainsKey ("error")) {
 					throw new AuthException ("Error authenticating: " + data ["error"]);

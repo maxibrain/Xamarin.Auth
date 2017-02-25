@@ -28,13 +28,15 @@ namespace Xamarin.Auth
     public static class WebUtilities
 #endif 		
 	{
-		/// <summary>
-		/// Encodes the dictionary to a form representation.
-		/// </summary>
-		/// <param name="inputs">The dictionary to encode.</param>
-		/// <returns>A string in the form encoded format of the dictionary.</returns>
-		/// <exception cref="ArgumentNullException"><paramref name="inputs"/> is <c>null</c>.</exception>
-		public static string FormEncode (this IDictionary<string, string> inputs)
+        /// <summary>
+        /// Encodes the dictionary to a form representation.
+        /// </summary>
+        /// <param name="inputs">The dictionary to encode.</param>
+        /// <param name="separator"></param>
+        /// <param name="valueEnds"></param>
+        /// <returns>A string in the form encoded format of the dictionary.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="inputs"/> is <c>null</c>.</exception>
+        public static string FormEncode (this IEnumerable<KeyValuePair<string, string>> inputs, string separator = "&", string valueEnds = "")
 		{
 			if (inputs == null)
 				throw new ArgumentNullException ("inputs");
@@ -45,8 +47,10 @@ namespace Xamarin.Auth
 				sb.Append (head);
 				sb.Append (EncodeString (p.Key));
 				sb.Append ("=");
-				sb.Append (EncodeString (p.Value));
-				head = "&";
+                sb.Append (valueEnds);
+                sb.Append (EncodeString (p.Value));
+                sb.Append (valueEnds);
+                head = separator;
 			}
 			return sb.ToString ();
 		}

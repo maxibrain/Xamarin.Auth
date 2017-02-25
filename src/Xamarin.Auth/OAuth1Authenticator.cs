@@ -50,10 +50,10 @@ namespace Xamarin.Auth
 
 		GetUsernameAsyncFunc getUsernameAsync;
 
-		string token;
-		string tokenSecret;
+	    public string Token { get; private set; }
+	    public string TokenSecret { get; private set; }
 
-		string verifier;
+	    string verifier;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Xamarin.Auth.OAuth1Authenticator"/> class.
@@ -131,6 +131,8 @@ namespace Xamarin.Auth
 			get { return this.consumerSecret; }
 		}
 
+	    public string RequestTokenMethod { get; set; } = "GET";
+
 		/// <summary>
 		/// Gets the request token url. http://oauth.net/core/1.0/#request_urls
 		/// </summary>
@@ -147,10 +149,12 @@ namespace Xamarin.Auth
 			get { return this.authorizeUrl; }
 		}
 
-		/// <summary>
-		/// Gets the access token url. http://oauth.net/core/1.0/#request_urls
-		/// </summary>
-		public Uri AccessTokenUrl
+	    public string AccessTokenMethod { get; set; } = "GET";
+
+        /// <summary>
+        /// Gets the access token url. http://oauth.net/core/1.0/#request_urls
+        /// </summary>
+        public Uri AccessTokenUrl
 		{
 			get { return this.accessTokenUrl; }
 		}
@@ -163,6 +167,8 @@ namespace Xamarin.Auth
 			get { return this.callbackUrl; }
 		}
 
+	    public bool UseAuthorizationHeader { get; set; } = false;
+
 		/// <summary>
 		/// Method that returns the initial URL to be displayed in the web browser.
 		/// </summary>
@@ -171,27 +177,30 @@ namespace Xamarin.Auth
 		/// </returns>
 		public override Task<Uri> GetInitialUrlAsync () {
 			var req = OAuth1.CreateRequest (
-				"GET",
+				RequestTokenMethod,
 				requestTokenUrl, 
 				new Dictionary<string, string>() {
 					{ "oauth_callback", callbackUrl.AbsoluteUri },
 				},
+                UseAuthorizationHeader,
 				consumerKey,
 				consumerSecret,
 				"");
 
-			return req.GetResponseAsync ().ContinueWith (respTask => {
+		    req.ContentType = "application/x-www-form-urlencoded";
+
+            return req.GetResponseAsync ().ContinueWith (respTask => {
 
 				var content = respTask.Result.GetResponseText ();
 
 				var r = WebEx.FormDecode (content);
 
-				token = r["oauth_token"];
-				tokenSecret = r["oauth_token_secret"];
+				Token = r["oauth_token"];
+				TokenSecret = r["oauth_token_secret"];
 
 				string paramType = authorizeUrl.AbsoluteUri.IndexOf("?") >= 0 ? "&" : "?";
 
-				var url = authorizeUrl.AbsoluteUri + paramType + "oauth_token=" + Uri.EscapeDataString (token);
+				var url = authorizeUrl.AbsoluteUri + paramType + "oauth_token=" + Uri.EscapeDataString (Token);
 				return new Uri (url);
 			});
 		}
@@ -221,22 +230,23 @@ namespace Xamarin.Auth
 			}
 		}
 
-		Task GetAccessTokenAsync ()
+		Task GetAccessTokenAsync()
 		{
 			var requestParams = new Dictionary<string, string> {
-				{ "oauth_token", token }
+				{ "oauth_token", Token }
 			};
 
 			if (verifier != null)
 				requestParams["oauth_verifier"] = verifier;
 
 			var req = OAuth1.CreateRequest (
-				"GET",
+				AccessTokenMethod,
 				accessTokenUrl,
 				requestParams,
+                UseAuthorizationHeader,
 				consumerKey,
 				consumerSecret,
-				tokenSecret);
+				TokenSecret);
 			
 			return req.GetResponseAsync ().ContinueWith (respTask => {				
 				var content = respTask.Result.GetResponseText ();
