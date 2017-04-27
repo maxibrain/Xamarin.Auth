@@ -75,7 +75,7 @@ namespace Xamarin.Auth
 			for (var i = 0; i < utf8.Length; i++) {
 				var v = utf8[i];
 				if ((0x41 <= v && v <= 0x5A) || (0x61 <= v && v <= 0x7A) || (0x30 <= v && v <= 0x39) ||
-				    v == 0x2D || v == 0x2E || v == 0x5F || v == 0x7E) {
+				    v == 0x2D || v == 0x2E || v == 0x3B || v == 0x5F || v == 0x7E) {
 					sb.Append ((char)v);
 				} else {
 					sb.AppendFormat (CultureInfo.InvariantCulture, "%{0:X2}", v);

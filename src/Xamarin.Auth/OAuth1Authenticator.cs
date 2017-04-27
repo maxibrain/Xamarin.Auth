@@ -191,9 +191,16 @@ namespace Xamarin.Auth
 
             return req.GetResponseAsync ().ContinueWith (respTask => {
 
-				var content = respTask.Result.GetResponseText ();
-
-				var r = WebEx.FormDecode (content);
+				string content;
+                                                                         try
+                                                                         {
+                                                                             content = respTask.Result.GetResponseText ();
+                                                                         }
+                                                                         catch (AggregateException e)
+                                                                         {
+                                                                             throw new Exception("Failed to get request token", e.InnerException);
+                                                                         }
+                                                                         var r = WebEx.FormDecode (content);
 
 				Token = r["oauth_token"];
 				TokenSecret = r["oauth_token_secret"];

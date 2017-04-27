@@ -15,6 +15,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Linq;
 using System.Security.Cryptography;
@@ -129,6 +130,7 @@ namespace Xamarin.Auth
 			
 			var nonce = new Random ().Next ().ToString ();
 			var timestamp = ((int)(DateTime.UtcNow - new DateTime (1970, 1, 1)).TotalSeconds).ToString ();
+            Debug.WriteLine($"{url.AbsoluteUri} - Nonce: {nonce}; Timestamp: {timestamp}");
 
 			ps ["oauth_nonce"] = nonce;
 			ps ["oauth_timestamp"] = timestamp;
@@ -172,10 +174,14 @@ namespace Xamarin.Auth
 	    public static WebRequest CreateRequest (string method, Uri uri, IDictionary<string, string> parameters, bool useAuthorizationHeader, string consumerKey, string consumerSecret, string tokenSecret)
 		{
 			var ps = MixInOAuthParameters (method, uri, parameters, consumerKey, consumerSecret, tokenSecret);
-	        var urlParams = useAuthorizationHeader ? ps.Where(p => !p.Key.StartsWith("oauth_")) : ps;
-            var realUrl = $"{uri.AbsoluteUri}?{urlParams.FormEncode()}";
+	        var urlParams = (useAuthorizationHeader ? ps.Where(p => !p.Key.StartsWith("oauth_")) : ps).ToArray();
+	        var realUrlBuilder = new StringBuilder(uri.AbsoluteUri);
+	        if (urlParams.Length > 0)
+	        {
+	            realUrlBuilder.Append($"?{urlParams.FormEncode()}");
+	        }
 
-			var req = (HttpWebRequest)WebRequest.Create (realUrl);
+			var req = (HttpWebRequest)WebRequest.Create (realUrlBuilder.ToString());
 			req.Method = method;
 	        if (useAuthorizationHeader)
 	        {
